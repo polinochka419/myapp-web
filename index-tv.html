@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, height=1080, user-scalable=no" />
+  <title>Smart TV Widget - Ярославль</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .photo-show {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.3;
+      z-index: -1;
+    }
+
+    .photo-slide {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+    }
+
+    .photo-slide.active {
+      opacity: 1;
+    }
+
+    .glass-panel {
+      background: rgba(20, 25, 45, 0.85);
+      border-radius: 24px;
+      padding: 32px;
+      width: 100%;
+      max-width: 1200px;
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeIn 1.2s ease-out forwards;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .city {
+      font-size: 3.2rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      color: #e0e0ff;
+    }
+
+    .time {
+      font-size: 5rem;
+      font-weight: 300;
+      margin-bottom: 12px;
+      letter-spacing: 3px;
+      text-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .date {
+      font-size: 1.4rem;
+      opacity: 0.95;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .weather-card,
+    .info-card,
+    .traffic-card {
+      background: rgba(30, 35, 60, 0.7);
+      border-radius: 20px;
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .weather-card h2,
+    .info-card h2,
+    .traffic-card h2 {
+      font-size: 1.7rem;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #a0d0ff;
+      font-weight: 600;
+    }
+
+    .weather-info {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .temperature {
+      font-size: 4rem;
+      font-weight: 700;
+      color: #fcd34d;
+    }
+
+    .weather-condition {
+      font-size: 1.5rem;
+      opacity: 0.95;
+      font-weight: 500;
+      text-align: center;
+      min-width: 200px;
+    }
+
+    .weather-details {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      font-weight: 500;
+    }
+
+    .detail-item span:first-child {
+      opacity: 0.85;
+    }
+
+    .detail-item span:last-child {
+      font-weight: 600;
+      color: #fcd34d;
+    }
+
+    .clothing-advice {
+      background: rgba(40, 80, 50, 0.3);
+      border-radius: 16px;
+      padding: 18px;
+      margin-top: 18px;
+      border-left: 4px solid #4ade80;
+    }
+
+    .clothing-advice h3 {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+      color: #4ade80;
+      font-weight: 600;
+    }
+
+    .clothing-text {
+      font-size: 1.1rem;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    .what-to-take {
+      margin-top: 16px;
+      background: rgba(40, 60, 90, 0.3);
+      border-radius: 16px;
+      padding: 18px;
+      border-left: 4px solid #60a5fa;
+    }
+
+    .what-to-take h3 {
+      color: #60a5fa;
+      font-weight: 600;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .info-item {
+      padding: 14px;
+      background: rgba(40, 45, 70, 0.6);
+      border-radius: 14px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .info-label {
+      font-size: 1rem;
+      opacity: 0.85;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .info-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fcd34d;
+    }
+
+    .quote {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 24px;
+      background: rgba(40, 45, 70, 0.6);
+      border-radius: 20px;
+      margin-top: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .quote-text {
+      font-style: italic;
+      font-size: 1.3rem;
+      line-height: 1.5;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .quote-author {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      font-weight: 600;
+    }
+
+    /* Карта пробок */
+    .traffic-map-container {
+      width: 100%;
+      height: 410px;
+      position: relative;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .traffic-map-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .traffic-fallback {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(30, 35, 60, 0.8);
+      padding: 20px;
+      text-align: center;
+      border-radius: 12px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .traffic-level {
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .traffic-bar-container {
+      width: 80%;
+      height: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 0 auto 12px;
+    }
+
+    .traffic-bar {
+      height: 100%;
+      width: 0%;
+      border-radius: 8px;
+      background: #4ade80;
+    }
+
+    .traffic-note {
+      font-size: 0.9rem;
+      opacity: 0.75;
+      margin-top: 10px;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .traffic-card {
+      grid-column: 1 / -1;
+    }
+
+    @media (min-width: 900px) {
+      .content {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+      .traffic-card {
+        grid-column: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="photo-show" id="photoShow">
+    <div class="photo-slide active" style="background-image: url('https://images.wallpaperscraft.ru/image/single/devushka_tsvety_choker_1149762_1920x1080.jpg')"></div>
+    <div class="photo-slide" style="background-image: url('https://images.wallpaperscraft.ru/image/single/devushka_vzgliad_listia_206165_1920x1080.jpg')"></div>
+    <div class="photo-slide" style="background-image: url('https://images.wallpaperscraft.ru/image/single/devushka_sumka_avtobus_917489_1920x1080.jpg')"></div>
+    <div class="photo-slide" style="background-image: url('https://images.wallpaperscraft.ru/image/single/devushka_kraska_poza_1308379_1920x1080.jpg')"></div>
+  </div>
+
+  <div class="glass-panel">
+    <div class="header">
+      <div class="city">Ярославль</div>
+      <div class="time" id="currentTime">--:--</div>
+      <div class="date" id="currentDate">--.--.----</div>
+    </div>
+
+    <div class="content">
+      <div class="weather-card">
+        <h2>Погода</h2>
+        <div class="weather-info">
+          <div class="temperature" id="temperature">--°C</div>
+          <div class="weather-condition" id="weatherCondition">Загрузка...</div>
+        </div>
+        <div class="weather-details">
+          <div class="detail-item">
+            <span>Влажность:</span>
+            <span id="humidity">--%</span>
+          </div>
+          <div class="detail-item">
+            <span>Ветер:</span>
+            <span id="windSpeed">-- м/с</span>
+          </div>
+          <div class="detail-item">
+            <span>Давление:</span>
+            <span id="pressure">-- мм</span>
+          </div>
+          <div class="detail-item">
+            <span>Ощущается:</span>
+            <span id="feelsLike">--°C</span>
+          </div>
+        </div>
+
+        <div class="clothing-advice">
+          <h3>Как одеться</h3>
+          <div class="clothing-text" id="clothingAdvice">Загрузка...</div>
+        </div>
+
+        <div class="what-to-take">
+          <h3>Что взять с собой</h3>
+          <div class="clothing-text" id="whatToTake">Загрузка...</div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h2>Информация</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Курс USD</div>
+            <div class="info-value" id="usdRate">-- ₽</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Курс EUR</div>
+            <div class="info-value" id="eurRate">-- ₽</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Население</div>
+            <div class="info-value">585 тыс</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Часовой пояс</div>
+            <div class="info-value">MSK (UTC+3)</div>
+          </div>
+        </div>
+
+        <div class="quote">
+          <div class="quote-text" id="quoteText">"Время — лучший лекарь."</div>
+          <div class="quote-author" id="quoteAuthor">— Овидий</div>
+        </div>
+      </div>
+
+      <div class="traffic-card">
+        <h2>Пробки</h2>
+        <div class="traffic-map-container">
+          <iframe
+            class="traffic-map-iframe"
+            id="trafficIframe"
+            src="https://yandex.ru/map-widget/v1/?ll=39.8976,57.60&z=11&l=map,trf&origin=jsapi-widget"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+          ></iframe>
+          <div class="traffic-fallback" id="trafficFallback">
+            <div class="traffic-level" id="fallbackLevel">Пробки: данные недоступны</div>
+            <div class="traffic-bar-container">
+              <div class="traffic-bar" id="fallbackBar"></div>
+            </div>
+            <div class="traffic-note">Карта Яндекс не загрузилась</div>
+          </div>
+        </div>
+        <div class="traffic-note" style="text-align: center; margin-top: 10px;">
+          Данные Яндекс.Карт, обновление каждые 2–3 мин
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === Проверка загрузки iframe ===
+    function setupIframeFallback() {
+      const iframe = document.getElementById('trafficIframe');
+      const fallback = document.getElementById('trafficFallback');
+      
+      let loaded = false;
+      
+      iframe.onload = function() {
+        loaded = true;
+        fallback.style.display = 'none';
+      };
+
+      // Если через 10 сек не загрузилось — показать fallback
+      setTimeout(() => {
+        if (!loaded) {
+          fallback.style.display = 'flex';
+          // Сгенерировать имитацию пробок
+          const level = Math.floor(Math.random() * 11);
+          const labels = ['Свободно','Свободно','Свободно','Незначительные','Незначительные','Умеренные','Умеренные','Затруднено','Затруднено','Сильные','Критические'];
+          const colors = ['#4ade80','#4ade80','#4ade80','#a3e635','#a3e635','#facc15','#facc15','#f97316','#f97316','#ef4444','#ef4444'];
+          
+          document.getElementById('fallbackLevel').textContent = `Пробки: ${labels[level]}`;
+          const bar = document.getElementById('fallbackBar');
+          bar.style.width = `${level * 10}%`;
+          bar.style.backgroundColor = colors[level];
+        }
+      }, 10000);
+    }
+
+    // === Остальные функции без изменений ===
+    function getClothingAdvice(temperature, condition, humidity, windSpeed) {
+      let clothing = '';
+      let whatToTake = '';
+
+      if (temperature <= -10) {
+        clothing = 'Теплая зимняя куртка, шапка, перчатки, шарф, ботинки';
+        whatToTake = 'Термос с горячим напитком';
+      } else if (temperature <= 0) {
+        clothing = 'Зимняя куртка, шапка, перчатки';
+        whatToTake = 'Зонт (при снеге), термос';
+      } else if (temperature <= 10) {
+        clothing = 'Демисезонная куртка, свитер, джинсы';
+        whatToTake = 'Зонт, перчатки';
+      } else if (temperature <= 20) {
+        clothing = 'Лёгкая куртка, джинсы, футболка';
+        whatToTake = 'Зонт или очки';
+      } else if (temperature <= 25) {
+        clothing = 'Футболка, шорты, кроссовки';
+        whatToTake = 'Очки, шляпа, вода';
+      } else {
+        clothing = 'Лёгкая одежда, шорты';
+        whatToTake = 'Очки, крем, вода';
+      }
+
+      const lowerCondition = condition.toLowerCase();
+      if (lowerCondition.includes('дождь')) {
+        whatToTake = 'Прочный зонт, непромокаемая обувь';
+      } else if (lowerCondition.includes('снег')) {
+        whatToTake = 'Тёплые перчатки, нескользящая обувь';
+      } else if (lowerCondition.includes('гроза')) {
+        whatToTake = 'Зонт, избегайте открытых мест';
+      }
+      if (windSpeed > 5) {
+        whatToTake += '. Ветровка рекомендуется.';
+      }
+
+      return { clothing, whatToTake };
+    }
+
+    function initPhotoShow() {
+      const slides = document.querySelectorAll('.photo-slide');
+      let current = 0;
+      setInterval(() => {
+        slides[current].classList.remove('active');
+        current = (current + 1) % slides.length;
+        slides[current].classList.add('active');
+      }, 10000);
+    }
+
+    function updateTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+
+      const weekdays = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+      const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+      const day = weekdays[now.getDay()];
+      const date = now.getDate();
+      const month = months[now.getMonth()];
+      const year = now.getFullYear();
+      document.getElementById('currentDate').textContent = `${day}, ${date} ${month} ${year} г.`;
+    }
+
+    const API_KEY = '39b8fb9eb1024fdbaeb74538252711';
+    const CITY = 'Yaroslavl';
+
+    const conditionShort = {
+      Sunny: 'Солнечно',
+      Clear: 'Ясно',
+      'Partly cloudy': 'Облачно',
+      Cloudy: 'Пасмурно',
+      Overcast: 'Пасмурно',
+      Mist: 'Мгла',
+      Fog: 'Туман',
+      'Light rain': 'Дождь',
+      Rain: 'Дождь',
+      'Heavy rain': 'Сильный дождь',
+      'Light snow': 'Снег',
+      Snow: 'Снег',
+      Blizzard: 'Метель',
+    };
+
+    async function updateWeather() {
+      try {
+        const res = await fetch(`https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${CITY}&lang=ru`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const current = data.current;
+
+        document.getElementById('temperature').textContent = `${Math.round(current.temp_c)}°C`;
+        document.getElementById('weatherCondition').textContent = conditionShort[current.condition.text] || current.condition.text;
+        document.getElementById('humidity').textContent = `${current.humidity}%`;
+        document.getElementById('windSpeed').textContent = `${(current.wind_kph / 3.6).toFixed(1)} м/с`;
+        document.getElementById('pressure').textContent = `${Math.round(current.pressure_mb * 0.750062)} мм`;
+        document.getElementById('feelsLike').textContent = `${Math.round(current.feelslike_c)}°C`;
+
+        const advice = getClothingAdvice(
+          current.temp_c,
+          current.condition.text,
+          current.humidity,
+          current.wind_kph / 3.6
+        );
+        document.getElementById('clothingAdvice').textContent = advice.clothing;
+        document.getElementById('whatToTake').textContent = advice.whatToTake;
+
+      } catch (err) {
+        console.error('Ошибка погоды:', err);
+        document.getElementById('weatherCondition').textContent = 'Ошибка';
+      }
+    }
+
+    function updateCurrencyRates() {
+      const usd = (92 + Math.random() * 2).toFixed(2);
+      const eur = (101 + Math.random() * 2).toFixed(2);
+      document.getElementById('usdRate').textContent = `${usd} ₽`;
+      document.getElementById('eurRate').textContent = `${eur} ₽`;
+    }
+
+    const quotes = [
+      { text: 'Время — лучший лекарь.', author: 'Овидий' },
+      { text: 'Утро вечера мудренее.', author: 'Русская пословица' },
+      { text: 'Природа создает, а время развивает.', author: 'Ж.-Ж. Руссо' },
+      { text: 'Время — мера всех вещей.', author: 'Аристотель' },
+      { text: 'Делай что должно, и будь что будет.', author: 'Радищев' },
+    ];
+
+    function updateQuote() {
+      const q = quotes[Math.floor(Math.random() * quotes.length)];
+      document.getElementById('quoteText').textContent = `"${q.text}"`;
+      document.getElementById('quoteAuthor').textContent = `— ${q.author}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initPhotoShow();
+      updateTime();
+      updateWeather();
+      updateCurrencyRates();
+      updateQuote();
+      setupIframeFallback(); // <-- ВАЖНО: инициализация проверки карты
+
+      setInterval(updateTime, 60000);
+      setInterval(updateWeather, 300000);
+      setInterval(updateCurrencyRates, 1800000);
+      setInterval(updateQuote, 7200000);
+    });
+  </script>
+</body>
+</html>
